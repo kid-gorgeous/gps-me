@@ -1,0 +1,21 @@
+# Files
+/tle_latest.txt
+/config.json
+/main.py
+/personal_config.py
+/spacetrack.ipynb
+
+
+# Folders
+__pycache__/
+notebooks/
+utils/
+# data/
+.venv/
+
+
+# Extensions
+*.pyc
+*.DS_Store
+*.csv
+*.json
