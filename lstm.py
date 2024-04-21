@@ -6,13 +6,26 @@ from tensorflow.keras.layers import LSTM, Dense, Input
 from argparse import ArgumentParser
 arg = ArgumentParser()
 
+from api import SP_Client
+
+user = os.getenv('SPACETRACKER_UNAME')
+password = os.getenv('SP_PASSWORD')
+
+sp = SP_Client(user, password)
+sp.set_data()
+
+line_data_1 = sp.tle_df_line1
+line_data_2 = sp.tle_df_line2
+
 arg.add_argument('--info', action='store_true', help='Display information about the file and dataset')
 arg.add_argument('--train', action='store_true', help='Run training function')
+
 # Keras LSTM (Work in Progress)
 class K_LSTM:
     def __init__(self, input_dim, hidden_dim, output_dim):
         self.model = Sequential()
         self.model.add(Input(shape=(None, input_dim)))
+        self.model.add(LSTM(input_dim, return_sequences=True))
         self.model.add(LSTM(hidden_dim))
         self.model.add(Dense(output_dim))
 
@@ -36,8 +49,16 @@ class K_LSTM:
     def summary(self):
         print(self.model.summary())
         
+from sklearn.linear_model import train_test_split
+
+
+
 # Generate random data for X and y
 X = np.random.randn(1000, 64)
+
+
+
+# EPOCH
 y = np.random.randn(1000, 1)
 
 # Split the data into training and testing sets

@@ -2,3 +2,6 @@ httpx
 pandas
 spacetrack
 tensorflow
+keras
+
+scikit-learn

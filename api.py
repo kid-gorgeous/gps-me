@@ -30,7 +30,7 @@ class SP_Client:
 
         self.tle_df_line1 = pd.DataFrame(columns=['Line Number', 'Satellite Number w/ Unclassified', 'Int. Designator', 'Epoch', 'First Time Derivative of Mean Motion', 'Second Time Derivative of Mean Motion', 'BSTAR Drag Term', 'Ephemeris Type', 'Element Number w. Checksum'])
         self.tle_df_line2 = pd.DataFrame(columns=['Line Number', 'Satellite Number w/ Unclassified', 'Inclination', 'Right Ascension of Ascending Node', 'Eccentricity', 'Argument of Perigee', 'Mean Anomaly', 'Mean Motion w/ Revolution Number at Epoch'])
-
+        
     def get(self):
         data = self.st.tle_latest(iter_lines=True, ordinal=1, epoch='>now-30',
                         mean_motion=op.inclusive_range(0.99, 1.01),
@@ -62,6 +62,7 @@ class SP_Client:
             file_length = len(fileline)
             line = fileline[0]
 
+
             print('File length: ' ,file_length)
             for i in range(file_length):
                 if i % 2 == 0:
@@ -79,8 +80,8 @@ class SP_Client:
                     except Exception as e:
                         pass
                         
-    def train(self):
-        pass
+        # Return 
+        return                
         
 
 
@@ -108,7 +109,7 @@ class ILRS_Client:
 
         self.satellite = satellite
 
-        self.df = pd.DataFrame(columns=['Record ID', 'Satellite', 'Cospar ID', 'Norad ID', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second', 'Millisecond', 'Microsecond', 'UTC', 'Range', 'Normal Point', 'Range Supplement', 'Point Angle', 'Calibration', 'Session Statistics', 'Compatibility'])
+        self.h3df = pd.DataFrame(columns=['Record ID', 'Satellite', 'Cospar ID', 'SIC ID', 'Norad ID', 'Epoch Scale', 'Target', 'Location Range'])
 
     def get(self):
         m = len(open('data/sentinel3a_20220_January.npt', 'r').readlines())
@@ -122,17 +123,56 @@ class ILRS_Client:
                 # This will process the data from the Sentinel 3A satellite file
                 if record_id == self.record[2]:
                     print(line_data)
-                    # Append the line data to the spacecraft_info list
-                    self.spacecraft_info.append(line_data)
-                    self.satellite = line_data[1]
-                    self.cospar_id = line_data[2]
-                    self.norad_id = line_data[4]
+                    print("Length of line data: ", len(line_data))
+
+                    # COSPAR ID, SIC ID, NORAD ID, EPOCH SCALE, TARGET
+                    satellite = line_data[1]
+                    cospar_id = line_data[2]
+                    sic_id = line_data[3]
+                    norad_id = line_data[4]
+                    epoch_scale = line_data[5]
+                    target = line_data[6]
+                    print("Printed r Index: ", record_id,satellite, cospar_id, sic_id, norad_id, epoch_scale, target)
+                    r_row = [record_id, satellite,cospar_id, sic_id, norad_id, epoch_scale, target]
+                    print("Length of Row: ", len(r_row))
+                    print(r_row)
+                    
+                    # self.h3df.loc[i] = r_row
+        print((self.h3df.columns))
 
 
+
+                    # print(self.satellite, self.cospar_id, self.sic_id, self.norad_id, self.epoch_scale, self.target, self.range)
                     # print('Satellite: ', self.satellite, 'Norad ID: ', self.norad_id)   
                 
         return data
 
+def test():
+
+    from rnn import K_RNN
+    # from lstm import K_LSTM
+    from sklearn.model_selection import train_test_split
+    import numpy as np
+
+    # Generate random data for X and y
+    X = np.random.randn(1000, 64)
+    y = np.random.randn(1000, 1)
+
+
+
+    # print(X)
+    print(y.columns('Satellite Number w/ Unclassified'))
+    
+
+
+    # Split the data into training and testing sets
+    X_train, X_test = X[:800], X[800:]
+    y_train, y_test = y[:800], y[800:]
+
+
+
+
+    pass
 
 
 if __name__ == "__main__":
@@ -149,7 +189,7 @@ if __name__ == "__main__":
     if args.ilrs:
         ilrs.get()
     if args.test:
-        pass
+        test()
     if args.save:
         sp.save_csv()
     if args.load:
