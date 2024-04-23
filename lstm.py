@@ -1,6 +1,8 @@
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from trustee import ClassificationTrustee
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Input
 from argparse import ArgumentParser
@@ -19,6 +21,7 @@ line_data_2 = sp.tle_df_line2
 
 arg.add_argument('--info', action='store_true', help='Display information about the file and dataset')
 arg.add_argument('--train', action='store_true', help='Run training function')
+arg.add_argument('--use_trustee', action='store_true', help='Use the trustee model')
 
 # Keras LSTM (Work in Progress)
 class K_LSTM:
@@ -55,9 +58,6 @@ from sklearn.linear_model import train_test_split
 
 # Generate random data for X and y
 X = np.random.randn(1000, 64)
-
-
-
 # EPOCH
 y = np.random.randn(1000, 1)
 
@@ -70,9 +70,11 @@ X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
 X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
 
 
+
 if __name__ == "__main__":
     args = arg.parse_args()
     lstm = K_LSTM(64, 16, 1)
+
     y_pred = None
 
     if args.info:
@@ -84,6 +86,12 @@ if __name__ == "__main__":
         
         print('Model trained successfully')
         print('Model evaluation: ', lstm.evaluate(X_test, y_test))
+    elif args.use_trustee:
+
+        trustee = ClassificationTrustee(X_train, y_train, X_test, y_test)
+        trustee.fit(X_train, y_train, num_iter=50, num_stability_iter=10, samples_size=0.3, verbose=True)
+        dt, pruned_dt, agreement, reward = trustee.explain()
+        dt_y_pred = dt.predict(X_test)
 
     else:
         pass

@@ -17,6 +17,7 @@ arg.add_argument('--save', action='store_true', help='')
 arg.add_argument('--load', action='store_true', help='')
 
 
+
 datapath = os.getenv('DATA_PATH')
 user, password = os.environ.get('SPACETRACKER_UNAME'), os.environ.get('SP_PASSWORD')
 
@@ -63,7 +64,7 @@ class SP_Client:
             line = fileline[0]
 
 
-            print('File length: ' ,file_length)
+            # print('File length: ' ,file_length)
             for i in range(file_length):
                 if i % 2 == 0:
                     try:
@@ -81,7 +82,7 @@ class SP_Client:
                         pass
                         
         # Return 
-        return                
+             
         
 
 
@@ -116,7 +117,7 @@ class ILRS_Client:
         with open('data/sentinel3a_20220_January.npt', 'r') as file:
             data = file.readlines()
             # span the file line by line
-            for i in range(0,m):
+            for i in range(0,1):
                 record_id = data[i][0:2]
                 line_data = data[i].split()
 
@@ -132,6 +133,10 @@ class ILRS_Client:
                     norad_id = line_data[4]
                     epoch_scale = line_data[5]
                     target = line_data[6]
+
+                    # if norad_id == '41335':
+                    #     print(line_data)
+
                     print("Printed r Index: ", record_id,satellite, cospar_id, sic_id, norad_id, epoch_scale, target)
                     r_row = [record_id, satellite,cospar_id, sic_id, norad_id, epoch_scale, target]
                     print("Length of Row: ", len(r_row))
@@ -147,6 +152,25 @@ class ILRS_Client:
                 
         return data
 
+def open_file():
+    col = ['Satellite ID', 'Maneuver Year Start', 'Maneuver Day Start', 'Maneuver Hour Start', 'Maneuver Minute Start', 'Maneuver Year End', 'Maneuver Day End', 'Maneuver Hour End', 'Maneuver Minute End', 'Maneuver Type', 'Maneuver Type', 'Number of Burns']
+    df = pd.DataFrame(columns=col)
+    print(df.columns)
+    m = len(open('data/cs2man.csv', 'r').readlines())
+    print("Length of file: ", m)
+    for i in range(0,1):
+        with open('data/cs2man.csv', 'r') as file:
+            data = file.readlines()
+            line = data[i].split(' ')
+            # line = line.remove(' ')
+            sat_id = line[0]
+            
+
+            print("FILE LINE: ", line, "\nNumber of elements: ", len(line))
+            print(f"Satellit ID: {sat_id}, Date of Manuever: {line[1:5]}, Date of End: {line[5:9]}")
+
+
+
 def test():
 
     from rnn import K_RNN
@@ -161,16 +185,8 @@ def test():
 
 
     # print(X)
-    print(y.columns('Satellite Number w/ Unclassified'))
+    # print(y.columns('Satellite Number w/ Unclassified'))
     
-
-
-    # Split the data into training and testing sets
-    X_train, X_test = X[:800], X[800:]
-    y_train, y_test = y[:800], y[800:]
-
-
-
 
     pass
 
@@ -188,6 +204,9 @@ if __name__ == "__main__":
         # print(sp.tle_df_line1)
     if args.ilrs:
         ilrs.get()
+
+    if args.test:
+        open_file()
     if args.test:
         test()
     if args.save:
