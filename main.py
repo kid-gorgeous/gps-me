@@ -439,27 +439,31 @@ def use_trustee(lstm):
         X_train_2d = X_train.reshape(X_train.shape[0],-1)
         X_train_reshaped = np.reshape(X_train, (-1, 1, 10))
         X_train_2d = np.reshape(X_train_reshaped, (X_train_reshaped.shape[0], -1))
+        print(f'Type of {type(X_train_2d)}, shape {X_train_2d.shape}')
 
 
-        trustee.fit(X_train_2d, y_train, num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
-        dt, pruned_dt, agreement, reward = trustee.explain()
-        dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
+        # trustee.fit(X_train_2d, y_train, num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
+        # dt, pruned_dt, agreement, reward = trustee.explain()
+        # dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
 
-        print("Model explanation global fidelity report:")
-        print(classification_report(y_pred, dt_y_pred))
-        print("Model explanation score report:")
-        print(classification_report(y_test, dt_y_pred))
+        # print("Model explanation global fidelity report:")
+        # print(classification_report(y_pred, dt_y_pred))
+        # print("Model explanation score report:")
+        # print(classification_report(y_test, dt_y_pred))
 
 # Start the timer and run the main function
 start  = tm.time()
 if __name__ == '__main__':
     filepath = '/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/data/sat-data'
+    modelpath = '/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras'
     from argparse import ArgumentParser
 
     from lstm import K_LSTM
     from rnn import K_RNN
     rnn = K_RNN(10, 16, 1)
     lstm = K_LSTM(10, 16, 1)
+
+
 
     arg = ArgumentParser()
     arg.add_argument('--upath',action='store_true', help='Using saved data')
@@ -483,7 +487,6 @@ if __name__ == '__main__':
     if args.upath:
         print('Using saved data')
         df = open_file(filepath)
-        print(f'Length of dataframe: {len(df)}')
     elif args.dl:
         print('Downloading data')
         get_data(filepath)
@@ -501,11 +504,9 @@ if __name__ == '__main__':
     elif args.rnn_train:
         clear()
         train(rnn)
-
     elif args.lstm_load:
         clear()
         load_mod()
-
     elif args.use_trustee:
         clear()
         lstm = load_model('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
