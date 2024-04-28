@@ -43,7 +43,7 @@ class K_LSTM:
     def train(self, X_train, y_train):
         early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
-        self.model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.3, callbacks=[early_stopping])
+        self.model.fit(X_train, y_train, epochs=200, batch_size=32, validation_split=0.2, callbacks=[early_stopping])
 
     def predict(self, X_test):
 
