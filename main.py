@@ -226,39 +226,13 @@ def _calculate_diff(df):
 def _preprocess(get_request):
     function_id = 'preprocess'
     print("Start preprocessing data... create index, drop duplicates, and localize feature labels")
-    open_file(get_request)
-    # print(f'Datatype of property: {type(get_request)}')
-    # print(f'Length of property: {len(get_request)}')
+    # open_file(get_request)
 
-
-
-
-# Main function w/ argparse requestType and Exception handling
-def main(filepath, requestType):
-    data_get_start = tm.time()
-    try:
-        if requestType == '--rpath':
-            print('Using requestType: ', requestType)
-            # get_data(filepath)
-            print('Using filepath: ', filepath)
-        elif requestType == '--upath': 
-            _preprocess(filepath)
-    except Exception as e:
-        expr = colored('Exception in main(): ', 'red')
-        print(f'{expr}', str(e))
-
-    data_get_end = tm.time()
-    print_runtime(data_get_start, data_get_end, 'get_data')
-
-def random_num_gen():
-    return np.random.randn(1000, 64)
 
 def train(obj):
     try:
         df = open_file(filepath)
-        # Convert the DataFrame to a numpy array and reshape it
-        # df_reshaped = df.to_numpy().reshape((df.shape[0], 1, df.shape[1]))
-        clear()
+
         # Assuming df_combined is your DataFrame and 'target' is your class label
         print('Training of model...')
         
@@ -288,7 +262,15 @@ def train(obj):
         print('Evaluating the model...')
         X_test = tf.convert_to_tensor(X_test, dtype=tf.float32)
         X_test = tf.cast(X_test, dtype=tf.float32)
+        obj.evaluate(X_test, y_test)
 
+        print('Optimizing the model...')
+        obj.compile()
+
+        print('Saving the model...')
+        # Save the model in the H5 format
+        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
+        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/weights.keras')
 
         # Save training data
         np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_train.npy', X_train)
@@ -300,16 +282,7 @@ def train(obj):
 
         # Save predictions
         np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_pred.npy', y_pred)
-
-        obj.evaluate(X_test, y_test)
-
-        print('Optimizing the model...')
-        obj.compile()
-
-        print('Saving the model...')
-        # Save the model in the H5 format
-        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
-        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/weights.keras')
+        
         print('Model trained successfully')
 
         obj.summary()
@@ -355,25 +328,20 @@ def train(obj):
         expr = colored('Exception in main(): ', 'red')
         print(f'{expr}', str(e))
 
-
 def load_mod():
     try:
         print('Loading the model...')
         model = load_model('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
         print('Model loaded successfully')
         # Assume model is a new instance of your Keras model
-        weights = model.load_weights('/path/to/weights.h5')   
+        weights = model.load_weights('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/weights.h5')   
         model.summary()
 
-        # Load training data
+        # Load training, testing data, and predictions
         X_train = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_train.npy')
         y_train = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_train.npy')
-
-        # Load testing data
         X_test = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_test.npy')
         y_test = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_test.npy')
-
-        # Load predictions
         y_pred = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_pred.npy')
 
         print('Loading and Evaluating model...')
@@ -469,7 +437,11 @@ def use_trustee(lstm):
 
         trustee = ClassificationTrustee(expert=lstm)
         X_train_2d = X_train.reshape(X_train.shape[0],-1)
-        trustee.fit(X_train, y_train, num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
+        X_train_reshaped = np.reshape(X_train, (-1, 1, 10))
+        X_train_2d = np.reshape(X_train_reshaped, (X_train_reshaped.shape[0], -1))
+
+
+        trustee.fit(X_train_2d, y_train, num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
         dt, pruned_dt, agreement, reward = trustee.explain()
         dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
 
@@ -506,14 +478,14 @@ if __name__ == '__main__':
             print('Exception in argument_pipeline(): ', str(e))
             sys.exit(1)
 
-    
+
     args = arg.parse_args()
     if args.upath:
         print('Using saved data')
-        main(filepath, args.upath)
+        df = open_file(filepath)
+        print(f'Length of dataframe: {len(df)}')
     elif args.dl:
         print('Downloading data')
-        # main(filepath, args.rpath)
         get_data(filepath)
     elif args.lstm_info:
         clear()
