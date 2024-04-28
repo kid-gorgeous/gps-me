@@ -8,6 +8,8 @@ from argparse import ArgumentParser
 
 
 arg = ArgumentParser()
+
+# python api.py wkwargs=[--data --tle --ilrs --train --test --save --load]
 arg.add_argument('--data', action='store_true', help='')
 arg.add_argument('--tle', action='store_true', help='')
 arg.add_argument('--ilrs', action='store_true', help='')
@@ -15,13 +17,17 @@ arg.add_argument('--train', action='store_true', help='')
 arg.add_argument('--test', action='store_true', help='')
 arg.add_argument('--save', action='store_true', help='')
 arg.add_argument('--load', action='store_true', help='')
+# they call function to control the api 
 
-
-
+# Get the environment variables
 datapath = os.getenv('DATA_PATH')
 user, password = os.environ.get('SPACETRACKER_UNAME'), os.environ.get('SP_PASSWORD')
+# use export ********="********"" to set the environment variables
+# the astriks are the name of the environment variable
 
 
+# The SpaceTrack API Client that I have created to gather daily TLE data
+# the client ables it. Kwargs will be used to control the api [--tle]
 class SP_Client:
     def __init__(self, identity, password):
         self.identity = identity
@@ -42,6 +48,9 @@ class SP_Client:
                 fp.write(line + '\n')
         print('Data downloaded successfully')
 
+    def get_historicals(self):
+        pass
+
     def save_csv(self, filepath, filename):
         modifiedpath = filepath + '/data.csv'
         filepath = filepath + filename
@@ -50,6 +59,7 @@ class SP_Client:
         df = df.dropna()
         df = df.drop_duplicates()
         df.to_csv(modifiedpath, index=False)
+        
 
     def tle_to_df(self, filepath):
         self.df = pd.read_csv(filepath, delimiter="\t")
@@ -82,10 +92,14 @@ class SP_Client:
                         pass
                         
         # Return 
+        # TODO: Return the dataframes but with perhaps a classifying column [Maneuver, Non-Maneuver]
              
         
 
-
+# The ILRS Client that I have created to gather regular ILRS data
+# made upon changes it should be able to gather data from the ILRS
+# using ftp or http requests to gather satellite data and store it in a dataframe
+# using a dataframe generator
 class ILRS_Client:
     def __init__(self, satellite): 
         self.record = ['h1', 'h2', 'h3', 'h4', 'h8', 'h9', 'c1', 'c2', 'c3', 'c4', '10', '11', '12', '20', '21', '30','40', '50', '60', '9X', '00']
@@ -152,10 +166,11 @@ class ILRS_Client:
                 
         return data
 
+# Test open file function that using the maneuver data
 def open_file():
     col = ['Satellite ID', 'Maneuver Year Start', 'Maneuver Day Start', 'Maneuver Hour Start', 'Maneuver Minute Start', 'Maneuver Year End', 'Maneuver Day End', 'Maneuver Hour End', 'Maneuver Minute End', 'Maneuver Type', 'Maneuver Type', 'Number of Burns']
     df = pd.DataFrame(columns=col)
-    print(df.columns)
+    print("Number of Columns", len(df.columns))
     m = len(open('data/cs2man.csv', 'r').readlines())
     print("Length of file: ", m)
     for i in range(0,1):
@@ -165,16 +180,15 @@ def open_file():
             # line = line.remove(' ')
             sat_id = line[0]
             
-
             print("FILE LINE: ", line, "\nNumber of elements: ", len(line))
             print(f"Satellit ID: {sat_id}, Date of Manuever: {line[1:5]}, Date of End: {line[5:9]}")
+            
+            df.loc[i] = line
 
-
-
+# Development environment for testing the API
 def test():
-
     from rnn import K_RNN
-    # from lstm import K_LSTM
+    from lstm import K_LSTM
     from sklearn.model_selection import train_test_split
     import numpy as np
 
@@ -182,15 +196,9 @@ def test():
     X = np.random.randn(1000, 64)
     y = np.random.randn(1000, 1)
 
-
-
-    # print(X)
-    # print(y.columns('Satellite Number w/ Unclassified'))
-    
-
     pass
 
-
+#
 if __name__ == "__main__":
 
     ilrs = ILRS_Client('sentinal3a')
@@ -204,11 +212,10 @@ if __name__ == "__main__":
         # print(sp.tle_df_line1)
     if args.ilrs:
         ilrs.get()
-
     if args.test:
         open_file()
-    if args.test:
-        test()
+    # if args.test:
+    #     test()
     if args.save:
         sp.save_csv()
     if args.load:

@@ -5,6 +5,8 @@ from tensorflow import keras
 from trustee import ClassificationTrustee
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Input
+from keras.optimizers import RMSprop
+from tensorflow.keras.callbacks import EarlyStopping
 from argparse import ArgumentParser
 arg = ArgumentParser()
 
@@ -12,6 +14,10 @@ from api import SP_Client
 
 user = os.getenv('SPACETRACKER_UNAME')
 password = os.getenv('SP_PASSWORD')
+
+def clear():
+    import os
+    os.system('clear')
 
 sp = SP_Client(user, password)
 sp.set_data()
@@ -28,17 +34,31 @@ class K_LSTM:
     def __init__(self, input_dim, hidden_dim, output_dim):
         self.model = Sequential()
         self.model.add(Input(shape=(None, input_dim)))
-        self.model.add(LSTM(input_dim, return_sequences=True))
-        self.model.add(LSTM(hidden_dim))
-        self.model.add(Dense(output_dim))
+        self.model.add(LSTM(input_dim, return_sequences=True, activation='tanh'))
+        self.model.add(LSTM(hidden_dim, return_sequences=False, activation='tanh'))
+        self.model.add(Dense(output_dim, activation='sigmoid'))
 
-        self.model.compile(loss='mean_squared_error', optimizer='adam')
-        
+        self.model.compile(loss='binary_crossentropy', optimizer='adam')
+    
     def train(self, X_train, y_train):
-        self.model.fit(X_train, y_train, epochs=10, batch_size=32)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+
+        self.model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.3, callbacks=[early_stopping])
 
     def predict(self, X_test):
+
+        # X_test = X_test.reshape(X_test.shape[0], 1, -1)
+        # X_test = np.array(X_test).reshape(X_test.shape[0], 1, -1)
+        # prob_pred = self.model.predict(X_test)
+        # rounded_pred = np.round(prob_pred)
+        # # predictions = tf.cast(rounded_pred, tf.int32).numpy()
+        # # return predictions.flatten()
+        # return rounded_pred.flatten()
+
         return self.model.predict(X_test)
+    
+    def compile(self):
+        self.model.compile(loss='binary_crossentropy', optimizer=RMSprop(learning_rate=0.001, rho=0.9))
     
     def evaluate(self, X_test, y_test):
         return self.model.evaluate(X_test, y_test)
@@ -52,8 +72,8 @@ class K_LSTM:
     def summary(self):
         print(self.model.summary())
         
-from sklearn.linear_model import train_test_split
 
+from sklearn.metrics import classification_report
 
 
 # Generate random data for X and y
@@ -78,8 +98,10 @@ if __name__ == "__main__":
     y_pred = None
 
     if args.info:
+        clear()
         print('This is a LSTM for the SpaceTracker API \n')
         lstm.summary()
+        lstm.evaluate(X_test, y_test)
     elif args.train:
         lstm.train(X_train, y_train)
         y = lstm.predict(X_test)
@@ -88,11 +110,16 @@ if __name__ == "__main__":
         print('Model evaluation: ', lstm.evaluate(X_test, y_test))
     elif args.use_trustee:
 
-        trustee = ClassificationTrustee(X_train, y_train, X_test, y_test)
-        trustee.fit(X_train, y_train, num_iter=50, num_stability_iter=10, samples_size=0.3, verbose=True)
+        trustee = ClassificationTrustee(expert=lstm)
+        X_train_2d = X_train.reshape(X_train.shape[0],-1)
+        trustee.fit(X_train_2d, y_train, num_iter=50, num_stability_iter=10, samples_size=0.3, verbose=True)
         dt, pruned_dt, agreement, reward = trustee.explain()
-        dt_y_pred = dt.predict(X_test)
+        dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
 
-    else:
-        pass
+        print("Model explanation global fidelity report:")
+        print(classification_report(y_pred, dt_y_pred))
+        print("Model explanation score report:")
+        print(classification_report(y_test, dt_y_pred))
+
+    # elif args.attack_model:
 
