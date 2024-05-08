@@ -198,7 +198,7 @@ def test():
 
     pass
 
-#
+
 if __name__ == "__main__":
 
     ilrs = ILRS_Client('sentinal3a')
@@ -209,13 +209,10 @@ if __name__ == "__main__":
         sp.get()
     if args.tle:
         sp.set_data()
-        # print(sp.tle_df_line1)
     if args.ilrs:
         ilrs.get()
     if args.test:
         open_file()
-    # if args.test:
-    #     test()
     if args.save:
         sp.save_csv()
     if args.load:

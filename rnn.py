@@ -31,11 +31,10 @@ class K_RNN(keras.Model):
         self.model.add(Input(shape=(None, input_dim)))
         self.model.add(SimpleRNN(hidden_dim))
         self.model.add(Dense(output_dim))
-
         self.model.compile(loss='mean_squared_error', optimizer='adam')
 
     def train(self, X_train, y_train):
-        self.model.fit(X_train, y_train, epochs=10, batch_size=32)
+        self.model.fit(X_train, y_train, epochs=5, batch_size=32)
 
     def predict(self, X_test):
         return self.model.predict(X_test)

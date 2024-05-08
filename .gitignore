@@ -10,6 +10,7 @@
 __pycache__/
 notebooks/
 utils/
+data_gen
 # data/
 .venv/
 

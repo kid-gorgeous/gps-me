@@ -3,14 +3,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from trustee import ClassificationTrustee
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Input
 from keras.optimizers import RMSprop
 from tensorflow.keras.callbacks import EarlyStopping
 from argparse import ArgumentParser
 arg = ArgumentParser()
-
-
 user = os.getenv('SPACETRACKER_UNAME')
 password = os.getenv('SP_PASSWORD')
 
@@ -18,37 +17,43 @@ def clear():
     import os
     os.system('clear')
 
+class SequentialNN(tf.keras.models.Sequential):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+    # @overload
+    def predict(self, x):
+        pred_probs = super().predict(x)
+        rounded_probs = tf.math.round(pred_probs)
+        predictions = tf.cast(rounded_probs, tf.int32).numpy()
+        return predictions.flatten()
 
 arg.add_argument('--info', action='store_true', help='Display information about the file and dataset')
 arg.add_argument('--train', action='store_true', help='Run training function')
 arg.add_argument('--use_trustee', action='store_true', help='Use the trustee model')
 
+
 # Keras LSTM (Work in Progress)
-class K_LSTM:
-    def __init__(self, input_dim, hidden_dim, output_dim):
+class K_LSTM():
+    def __init__(self, input_dim, hidden_dim, output_dim, *args, **kwargs):
         self.model = Sequential()
         self.model.add(Input(shape=(None, input_dim)))
         self.model.add(LSTM(input_dim, return_sequences=True, activation='tanh'))
         self.model.add(LSTM(hidden_dim, return_sequences=False, activation='tanh'))
         self.model.add(Dense(output_dim, activation='sigmoid'))
-
         self.model.compile(loss='binary_crossentropy', optimizer='adam')
     
     def train(self, X_train, y_train):
         # early_stopping = EarlyStopping(monitor='val_loss', patience=10)
-        self.model.fit(X_train, y_train, epochs=200, batch_size=32)
+        self.model.fit(X_train, y_train, epochs=100, batch_size=32)
 
+    # @overload
     def predict(self, X_test):
-
-        X_test = X_test.reshape(X_test.shape[0], 1, -1)
-        X_test = np.array(X_test).reshape(X_test.shape[0], 1, -1)
-        prob_pred = self.model.predict(X_test)
-        rounded_pred = np.round(prob_pred)
-        # predictions = tf.cast(rounded_pred, tf.int32).numpy()
+        # prob_pred = self.model.predict(X_test)
+        # rounded_pred = np.round(prob_pred)
+        # predictions = tf.cast(rounded_pred, tf.int32)
         # return predictions.flatten()
-        return rounded_pred.flatten()
-
-        # return self.model.predict(X_test)
+        return self.model.predict(X_test)
     
     def compile(self):
         self.model.compile(loss='binary_crossentropy', optimizer=RMSprop(learning_rate=0.001, rho=0.9))
@@ -64,7 +69,12 @@ class K_LSTM:
 
     def summary(self):
         print(self.model.summary())
-        
+
+    def save(self, filename):
+        self.model.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/{filename}')   
+
+    def save_weights(self, filename):
+        self.model.save_weights(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/coefficients/{filename}')   
 
 
 # Generate random data for X and y

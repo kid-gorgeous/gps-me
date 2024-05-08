@@ -7,6 +7,18 @@ def clear():
 clear()
 
 
+
+# class SequentialNN(tf.keras.models.Sequential):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+        
+#     def predict_trustee(self, x):
+#         pred_probs = super().predict(x)
+#         rounded_probs = tf.math.round(pred_probs)
+#         predictions = tf.cast(rounded_probs, tf.int32).numpy()
+#         return predictions.flatten()
+
+import time
 from termcolor import colored
 
 from sklearn.metrics import roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
@@ -16,10 +28,11 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import shuffle
 import tensorflow as tf
 
 # Import spacetrack library modules
-from trustee import ClassificationTrustee
+import trustee
 from spacetrack import SpaceTrackClient
 import spacetrack.operators as op
 import matplotlib.pyplot as plt
@@ -112,10 +125,20 @@ def get_data(filepath):
     end = tm.time()
     print_runtime(time, end, function_id)
 
-def plot_data(df, df_diff):
+def plot_data(df):
     function_id = 'plot_data'
     print(f'Plotting the data...')
-    df.plot()
+
+    features = df.columns.drop('EPOCH')  # Assuming 'epoch' is the name of your epoch column
+
+    for feature in features:
+        plt.figure(figsize=(10, 6))
+        plt.scatter(df['EPOCH'], df[feature])
+        plt.xlabel('Epoch')
+        plt.ylabel(feature)
+        plt.title(f'{feature} over Epochs')
+        plt.show()
+
     plt.show()
 
 # Open the file and read the data from the file path, and return the dataframe
@@ -178,17 +201,14 @@ def open_file(filepath):
             
         
         # Classify EPOCH_diff
-        # Define the threshold for a maneuver in seconds
+        # Define the threshold for a maneuver of 100 seconds
         maneuver_threshold = pd.to_timedelta('100 seconds').total_seconds()
         df_combined['maneuver_made'] = (df_combined['EPOCH_diff'] > maneuver_threshold).astype(int)
 
         # Create a new binary column that indicates whether a maneuver was made
         large_df = pd.concat([large_df, df_combined], axis=0)
-
-
         print_runtime(start, tm.time(), function_id)
     return large_df
-
 
 def calculate_diff(df):
     function_id = 'calculate_diff'
@@ -257,6 +277,7 @@ def train(obj):
         X_test = X_test.astype(np.float32)
         X_test = tf.convert_to_tensor(X_test, dtype=tf.float32)
         X_test = tf.cast(X_test, dtype=tf.float32)
+
         y_pred = obj.predict(X_test)
 
         print('Evaluating the model...')
@@ -269,19 +290,19 @@ def train(obj):
 
         print('Saving the model...')
         # Save the model in the H5 format
-        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
-        obj.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/weights.keras')
+        obj.save('test_primative_model.keras')
+        obj.save_weights('test_primative.weights.h5')
 
         # Save training data
-        np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_train.npy', X_train)
-        np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_train.npy', y_train)
+        # np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_train.npy', X_train)
+        # np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_train.npy', y_train)
 
-        # Save testing data
-        np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_test.npy', X_test)
-        np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_test.npy', y_test)
+        # # Save testing data
+        # np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_test.npy', X_test)
+        # np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_test.npy', y_test)
 
-        # Save predictions
-        np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_pred.npy', y_pred)
+        # # Save predictions
+        # np.save('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_pred.npy', y_pred)
         
         print('Model trained successfully')
 
@@ -334,7 +355,7 @@ def load_mod():
         model = load_model('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
         print('Model loaded successfully')
         # Assume model is a new instance of your Keras model
-        weights = model.load_weights('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/weights.h5')   
+        weights = model.load_weights('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/primative.weights.h5')   
         model.summary()
 
         # Load training, testing data, and predictions
@@ -360,7 +381,7 @@ def load_mod():
 
         print('Fitting the model...')
         # Create an EarlyStopping callback
-        early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+        # early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
         # Convert the training and testing data to float32 type
         X_train = X_train.astype(np.float32)
@@ -374,7 +395,7 @@ def load_mod():
 
         # Fit the model to the training data
         history = model.fit(X_train, y_train, epochs=100, 
-                            validation_split=0.2, callbacks=[early_stopping])
+                            validation_split=0.2)
 
         y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
 
@@ -407,6 +428,10 @@ def load_mod():
         # Evaluate the model on the testing data
         results = model.evaluate(X_test, y_test, verbose=0)
 
+        # Save the model and the weights
+        model.save('fine_tuned_model.keras')
+        model.save_weights('fine_tuned.weights.h5')
+
         # If the model has only one metric (e.g., accuracy), results will be a single float
         if isinstance(results, float):
             accuracy = results
@@ -421,8 +446,40 @@ def load_mod():
         expr = colored('Exception in main(): ', 'red')
         print(f'{expr}', str(e))
 
+def attack_model(lstm):
+        clear()
+        
+
+       
+
+        
+
+def clever_attack(model):
+    from cleverhans.future.tf2.attacks import fast_gradient_method
+
+    # Assume model is your trained Keras model
+    # Assume X_test and y_test are your testing data
+    X_test = np.open('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_test.npy')
+    y_test = np.open('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_test.npy')
+
+    # Convert the testing data to TensorFlow tensors
+    X_test_tensor = tf.convert_to_tensor(X_test, dtype=tf.float32)
+    y_test_tensor = tf.convert_to_tensor(y_test, dtype=tf.float32)
+
+    # Define the loss function
+    loss_fn = tf.keras.losses.CategoricalCrossentropy()
+
+    # Generate adversarial examples
+    X_test_adv = fast_gradient_method.fast_gradient_method(model, X_test_tensor, 0.3, np.inf, targeted=False)
+
+    # Evaluate the model on the adversarial examples
+    loss, acc = model.evaluate(X_test_adv, y_test_tensor, verbose=0)
+    print(f'Adversarial test accuracy: {acc:.3f}')
+
 def use_trustee(lstm):
     
+        from trustee import ClassificationTrustee
+        model = load_model('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/test_primative_model.keras')
 
         X_train = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/X_train.npy')
         y_train = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_train.npy')
@@ -431,25 +488,29 @@ def use_trustee(lstm):
         y_pred = np.load('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/y_pred.npy')
         
         clear()
+        print(f'')
         lstm.summary()
         print('Using trustee...')
         print(f'Shapes of: {X_train.shape, y_train.shape, X_test.shape, y_test.shape}')
 
         trustee = ClassificationTrustee(expert=lstm)
+        # trustee_model = trustee.Trustee(lstm)
+
         X_train_2d = X_train.reshape(X_train.shape[0],-1)
-        X_train_reshaped = np.reshape(X_train, (-1, 1, 10))
-        X_train_2d = np.reshape(X_train_reshaped, (X_train_reshaped.shape[0], -1))
-        print(f'Type of {type(X_train_2d)}, shape {X_train_2d.shape}')
+        # X_train_reshaped = np.reshape(X_train, (-1, 1, 10))
 
+        # X_train_2d = np.reshape(X_train_reshaped, (X_train_reshaped.shape[0], -1))
+        # Add a time step dimension to X_train_2d
+        X_train_3d = np.expand_dims(X_train_2d, axis=1)
+    
+        trustee.fit(X_train_2d, y_train, predict_method_name='predict_trustee', num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
+        dt, pruned_dt, agreement, reward = trustee.explain()
+        dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
 
-        # trustee.fit(X_train_2d, y_train, num_iter=100, num_stability_iter=10, samples_size=0.3, verbose=True)
-        # dt, pruned_dt, agreement, reward = trustee.explain()
-        # dt_y_pred = dt.predict(X_test.reshape(X_test.shape[0], -1))
-
-        # print("Model explanation global fidelity report:")
-        # print(classification_report(y_pred, dt_y_pred))
-        # print("Model explanation score report:")
-        # print(classification_report(y_test, dt_y_pred))
+        print("Model explanation global fidelity report:")
+        print(classification_report(y_pred, dt_y_pred))
+        print("Model explanation score report:")
+        print(classification_report(y_test, dt_y_pred))
 
 # Start the timer and run the main function
 start  = tm.time()
@@ -463,7 +524,7 @@ if __name__ == '__main__':
     rnn = K_RNN(10, 16, 1)
     lstm = K_LSTM(10, 16, 1)
 
-
+    df = open_file(filepath)
 
     arg = ArgumentParser()
     arg.add_argument('--upath',action='store_true', help='Using saved data')
@@ -474,6 +535,8 @@ if __name__ == '__main__':
     arg.add_argument('--rnn_info', action='store_true', help='Run training function')
     arg.add_argument('--lstm_load', action='store_true', help='Run training function')
     arg.add_argument('--use_trustee', action='store_true', help='Run training function')
+    arg.add_argument('--lstm_attack', action='store_true', help='Implement an attack on the LSTM')
+    arg.add_argument('--plot', action='store_true')
 
     def argument_pipeline(args):
         try:
@@ -494,6 +557,10 @@ if __name__ == '__main__':
         clear()
         print('LSTM info')
         lstm.summary()
+        lg = open_file(filepath)
+        lg_X = lg.drop(['EPOCH_diff', 'maneuver_made', 'D_EPOCH'], axis=1)
+        lg_y = lg['maneuver_made']
+        print(f'Shape X: {lg_X.shape}, Shape y: {lg_y.shape}')
     elif args.rnn_info:
         clear()
         print('RNN info')
@@ -508,10 +575,13 @@ if __name__ == '__main__':
         clear()
         load_mod()
     elif args.use_trustee:
-        clear()
         lstm = load_model('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/model.keras')
         use_trustee(lstm)
-        
+    elif args.lstm_attack:
+        attack_model(lstm)
+    elif args.plot:
+        plot_data(df)
+
     end = tm.time()
     expr = colored(f'{end-start}', 'green')
     print(f'Total time taken: {expr}')
