@@ -10,6 +10,8 @@ from keras.optimizers import RMSprop
 from tensorflow.keras.callbacks import EarlyStopping
 from argparse import ArgumentParser
 arg = ArgumentParser()
+# add names of the arguments for your user environment variables assuming
+# the user has set them
 user = os.getenv('SPACETRACKER_UNAME')
 password = os.getenv('SP_PASSWORD')
 
@@ -17,20 +19,9 @@ def clear():
     import os
     os.system('clear')
 
-class SequentialNN(tf.keras.models.Sequential):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-    # @overload
-    def predict(self, x):
-        pred_probs = super().predict(x)
-        rounded_probs = tf.math.round(pred_probs)
-        predictions = tf.cast(rounded_probs, tf.int32).numpy()
-        return predictions.flatten()
-
 arg.add_argument('--info', action='store_true', help='Display information about the file and dataset')
 arg.add_argument('--train', action='store_true', help='Run training function')
-arg.add_argument('--use_trustee', action='store_true', help='Use the trustee model')
+# arg.add_argument('--use_trustee', action='store_true', help='Use the trustee model')
 
 
 # Keras LSTM (Work in Progress)

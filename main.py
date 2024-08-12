@@ -7,17 +7,6 @@ def clear():
 clear()
 
 
-
-# class SequentialNN(tf.keras.models.Sequential):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-        
-#     def predict_trustee(self, x):
-#         pred_probs = super().predict(x)
-#         rounded_probs = tf.math.round(pred_probs)
-#         predictions = tf.cast(rounded_probs, tf.int32).numpy()
-#         return predictions.flatten()
-
 import time
 from termcolor import colored
 
@@ -446,14 +435,7 @@ def load_mod():
         expr = colored('Exception in main(): ', 'red')
         print(f'{expr}', str(e))
 
-def attack_model(lstm):
-        clear()
         
-
-       
-
-        
-
 def clever_attack(model):
     from cleverhans.future.tf2.attacks import fast_gradient_method
 
