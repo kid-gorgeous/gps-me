@@ -1,8 +1,0 @@
-httpx
-pandas
-spacetrack
-tensorflow
-keras
-trustee
-seaborn
-scikit-learn
