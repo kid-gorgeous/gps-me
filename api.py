@@ -67,8 +67,9 @@ class SP_Client:
         self.df = self.df.drop_duplicates()
         return self.df
 
+    # ERROR: change file pass 
     def set_data(self):
-        with open('/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/data/tle_latest.txt', 'r') as file:
+        with open(f'{datapath}/tle_latest.txt', 'r') as file:
             fileline = file.readlines()
             file_length = len(fileline)
             line = fileline[0]
@@ -148,22 +149,11 @@ class ILRS_Client:
                     epoch_scale = line_data[5]
                     target = line_data[6]
 
-                    # if norad_id == '41335':
-                    #     print(line_data)
-
                     print("Printed r Index: ", record_id,satellite, cospar_id, sic_id, norad_id, epoch_scale, target)
                     r_row = [record_id, satellite,cospar_id, sic_id, norad_id, epoch_scale, target]
                     print("Length of Row: ", len(r_row))
                     print(r_row)
-                    
-                    # self.h3df.loc[i] = r_row
-        print((self.h3df.columns))
-
-
-
-                    # print(self.satellite, self.cospar_id, self.sic_id, self.norad_id, self.epoch_scale, self.target, self.range)
-                    # print('Satellite: ', self.satellite, 'Norad ID: ', self.norad_id)   
-                
+        print((self.h3df.columns))     
         return data
 
 # Test open file function that using the maneuver data
@@ -177,7 +167,6 @@ def open_file():
         with open('data/cs2man.csv', 'r') as file:
             data = file.readlines()
             line = data[i].split(' ')
-            # line = line.remove(' ')
             sat_id = line[0]
             
             print("FILE LINE: ", line, "\nNumber of elements: ", len(line))
@@ -185,18 +174,18 @@ def open_file():
             
             df.loc[i] = line
 
-# Development environment for testing the API
-def test():
-    from rnn import K_RNN
-    from lstm import K_LSTM
-    from sklearn.model_selection import train_test_split
-    import numpy as np
+# # Development environment for testing the API
+# def test():
+#     from rnn import K_RNN
+#     from lstm import K_LSTM
+#     from sklearn.model_selection import train_test_split
+#     import numpy as np
 
-    # Generate random data for X and y
-    X = np.random.randn(1000, 64)
-    y = np.random.randn(1000, 1)
+#     # Generate random data for X and y
+#     X = np.random.randn(1000, 64)
+#     y = np.random.randn(1000, 1)
 
-    pass
+#     pass
 
 
 if __name__ == "__main__":
