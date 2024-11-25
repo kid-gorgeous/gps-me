@@ -62,10 +62,10 @@ class K_LSTM():
         print(self.model.summary())
 
     def save(self, filename):
-        self.model.save(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/{filename}')   
+        self.model.save(f'../models/{filename}')   
 
     def save_weights(self, filename):
-        self.model.save_weights(f'/Users/evan/Documents/School/Fall2023_Spring2024/Cyber/finalproject/models/coefficients/{filename}')   
+        self.model.save_weights(f'../models/coefficients/{filename}')   
 
 
 # Generate random data for X and y
@@ -81,7 +81,7 @@ y_train, y_test = y[:800], y[800:]
 X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
 X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
 
-
+lstm = K_LSTM()
 
 if __name__ == "__main__":
     args = arg.parse_args()
@@ -90,9 +90,10 @@ if __name__ == "__main__":
         print('This is a LSTM for the SpaceTracker API \n')
     elif args.train:
         print('Model trained successfully')
+        # add and train dimensions here..
+        # code was not included because this 
+        # is used in another file
         print('Model evaluation: ')
-    elif args.use_trustee:
-        print('Setting up trustee...')
-        pass
+
 
 
