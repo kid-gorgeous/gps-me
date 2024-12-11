@@ -28,8 +28,13 @@ config = {
         # implement a URL parser that will define and replace the target files
         ""
     }
+    "dev": {
+        # please implement this file
+    }
 }
 
 # Write the configuration data to a JSON file
-with open('config.json', 'w') as f:
+with open('folder_not_found/config.json', 'w') as f:
     json.dump(config, f, indent=4)
+
+
