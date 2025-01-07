@@ -17,6 +17,7 @@ arg.add_argument('--train', action='store_true', help='')
 arg.add_argument('--test', action='store_true', help='')
 arg.add_argument('--save', action='store_true', help='')
 arg.add_argument('--load', action='store_true', help='')
+arg.add_argument('--n2download', action='store_true', help='')
 # they call function to control the api 
 
 # Get the environment variables
@@ -24,6 +25,23 @@ datapath = os.getenv('DATA_PATH')
 user, password = os.environ.get('SPACETRACKER_UNAME'), os.environ.get('SP_PASSWORD')
 # use export ********="********"" to set the environment variables
 # the astriks are the name of the environment variable
+
+
+import requests
+
+class N2YO_Client:
+    def __init__(self):
+        self.api_key = 'E6VD62-BQKN53-EMWXG2-5ECI'
+        self.url = 'https://www.n2yo.com/satellites/?c=52&p=A'
+        self.client = httpx.Client()
+
+    def download_page(self):
+        response = requests.get(self.url)
+        with open('data/html/spacex_satellites.html', 'w') as file:
+            file.write(response.text)
+        print('Page downloaded successfully')
+    
+
 
 
 # The SpaceTrack API Client that I have created to gather daily TLE data
@@ -66,6 +84,8 @@ class SP_Client:
         self.df = self.df.dropna()
         self.df = self.df.drop_duplicates()
         return self.df
+
+
 
     # ERROR: change file pass 
     def set_data(self):
@@ -156,6 +176,8 @@ class ILRS_Client:
         print((self.h3df.columns))     
         return data
 
+
+
 # Test open file function that using the maneuver data
 def open_file():
     col = ['Satellite ID', 'Maneuver Year Start', 'Maneuver Day Start', 'Maneuver Hour Start', 'Maneuver Minute Start', 'Maneuver Year End', 'Maneuver Day End', 'Maneuver Hour End', 'Maneuver Minute End', 'Maneuver Type', 'Maneuver Type', 'Number of Burns']
@@ -174,18 +196,6 @@ def open_file():
             
             df.loc[i] = line
 
-# # Development environment for testing the API
-# def test():
-#     from rnn import K_RNN
-#     from lstm import K_LSTM
-#     from sklearn.model_selection import train_test_split
-#     import numpy as np
-
-#     # Generate random data for X and y
-#     X = np.random.randn(1000, 64)
-#     y = np.random.randn(1000, 1)
-
-#     pass
 
 
 if __name__ == "__main__":
@@ -206,5 +216,8 @@ if __name__ == "__main__":
         sp.save_csv()
     if args.load:
         pass
+
+    if args.n2download:
+        N2YO_Client().download_page()
 
 

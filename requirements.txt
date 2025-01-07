@@ -1,0 +1,8 @@
+spacetrack
+pandas
+termcolor
+tensorflow
+scikit-learn
+matplotlib
+seaborn
+httpx

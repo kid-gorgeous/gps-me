@@ -1,10 +1,7 @@
 '''
 This script downloads data from space-track.org. 
 '''
-def clear():
-    import os
-    os.system('clear')
-clear()
+
 
 import time
 from termcolor import colored
@@ -20,7 +17,6 @@ from sklearn.utils import shuffle
 import tensorflow as tf
 
 # Import spacetrack library modules
-import trustee
 from spacetrack import SpaceTrackClient
 import spacetrack.operators as op
 import matplotlib.pyplot as plt
@@ -41,8 +37,6 @@ import seaborn as sns
 
 import os
 
-# Import the LabelEncoder class from the sklearn library if needed
-le = LabelEncoder()
 
 # Credentials to access the Space-track API
 identity = os.environ.get('SPACETRACKER_UNAME')
@@ -60,6 +54,7 @@ ids = [
     36508,  # Cryosat-2
     27386,  # Envisat
     22076   # TOPEX/Poseidon
+    
 ]
 
 # Function to print the runtime of a function
