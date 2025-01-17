@@ -1,27 +1,20 @@
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from trustee import ClassificationTrustee
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Input
-from keras.optimizers import RMSprop
-from tensorflow.keras.callbacks import EarlyStopping
+
 from argparse import ArgumentParser
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 arg = ArgumentParser()
 # add names of the arguments for your user environment variables assuming
 # the user has set them
 user = os.getenv('SPACETRACKER_UNAME')
 password = os.getenv('SP_PASSWORD')
 
-def clear():
-    import os
-    os.system('clear')
 
 arg.add_argument('--info', action='store_true', help='Display information about the file and dataset')
 arg.add_argument('--train', action='store_true', help='Run training function')
-# arg.add_argument('--use_trustee', action='store_true', help='Use the trustee model')
 
 
 # Keras LSTM (Work in Progress)
@@ -86,13 +79,8 @@ lstm = K_LSTM()
 if __name__ == "__main__":
     args = arg.parse_args()
     if args.info:
-        clear()
         print('This is a LSTM for the SpaceTracker API \n')
     elif args.train:
-        print('Model trained successfully')
-        # add and train dimensions here..
-        # code was not included because this 
-        # is used in another file
         print('Model evaluation: ')
 
 

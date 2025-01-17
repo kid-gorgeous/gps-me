@@ -1,33 +1,23 @@
 import os 
 import httpx
+import requests
 import subprocess 
 import pandas as pd
 import spacetrack.operators as op
 from spacetrack import SpaceTrackClient
 from argparse import ArgumentParser
 
-
 arg = ArgumentParser()
 
 # python api.py wkwargs=[--data --tle --ilrs --train --test --save --load]
-arg.add_argument('--data', action='store_true', help='')
-arg.add_argument('--tle', action='store_true', help='')
-arg.add_argument('--ilrs', action='store_true', help='')
-arg.add_argument('--train', action='store_true', help='')
-arg.add_argument('--test', action='store_true', help='')
-arg.add_argument('--save', action='store_true', help='')
-arg.add_argument('--load', action='store_true', help='')
-arg.add_argument('--n2download', action='store_true', help='')
+arg.add_argument('--data', action='store_true')
+arg.add_argument('--tle', action='store_true')
 # they call function to control the api 
 
 # Get the environment variables
 datapath = os.getenv('DATA_PATH')
 user, password = os.environ.get('SPACETRACKER_UNAME'), os.environ.get('SP_PASSWORD')
-# use export ********="********"" to set the environment variables
-# the astriks are the name of the environment variable
 
-
-import requests
 
 class N2YO_Client:
     def __init__(self):
@@ -41,8 +31,6 @@ class N2YO_Client:
             file.write(response.text)
         print('Page downloaded successfully')
     
-
-
 
 # The SpaceTrack API Client that I have created to gather daily TLE data
 # the client ables it. Kwargs will be used to control the api [--tle]
@@ -116,7 +104,6 @@ class SP_Client:
         # TODO: Return the dataframes but with perhaps a classifying column [Maneuver, Non-Maneuver]
              
         
-
 # The ILRS Client that I have created to gather regular ILRS data
 # made upon changes it should be able to gather data from the ILRS
 # using ftp or http requests to gather satellite data and store it in a dataframe
@@ -177,7 +164,6 @@ class ILRS_Client:
         return data
 
 
-
 # Test open file function that using the maneuver data
 def open_file():
     col = ['Satellite ID', 'Maneuver Year Start', 'Maneuver Day Start', 'Maneuver Hour Start', 'Maneuver Minute Start', 'Maneuver Year End', 'Maneuver Day End', 'Maneuver Hour End', 'Maneuver Minute End', 'Maneuver Type', 'Maneuver Type', 'Number of Burns']
@@ -208,16 +194,6 @@ if __name__ == "__main__":
         sp.get()
     if args.tle:
         sp.set_data()
-    if args.ilrs:
-        ilrs.get()
-    if args.test:
-        open_file()
-    if args.save:
-        sp.save_csv()
-    if args.load:
-        pass
 
-    if args.n2download:
-        N2YO_Client().download_page()
 
 
